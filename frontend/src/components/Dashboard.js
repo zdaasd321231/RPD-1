@@ -123,15 +123,15 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white mb-2">
-              {Math.round(metrics.cpu.usage)}%
+              {metrics ? Math.round(metrics.cpu_usage) : 0}%
             </div>
             <Progress 
-              value={metrics.cpu.usage} 
+              value={metrics ? metrics.cpu_usage : 0} 
               className="mb-2"
-              style={{'--progress-foreground': metrics.cpu.usage > 80 ? 'rgb(248 113 113)' : metrics.cpu.usage > 60 ? 'rgb(251 191 36)' : 'rgb(34 197 94)'}}
+              style={{'--progress-foreground': (metrics?.cpu_usage || 0) > 80 ? 'rgb(248 113 113)' : (metrics?.cpu_usage || 0) > 60 ? 'rgb(251 191 36)' : 'rgb(34 197 94)'}}
             />
             <p className="text-xs text-gray-400">
-              {metrics.cpu.cores} ядер • {metrics.cpu.temperature}°C
+              {metrics?.cpu_temperature ? `${metrics.cpu_temperature}°C` : 'Temp: N/A'}
             </p>
           </CardContent>
         </Card>
@@ -143,14 +143,14 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white mb-2">
-              {Math.round((metrics.memory.used / metrics.memory.total) * 100)}%
+              {metrics ? Math.round((metrics.memory_used / metrics.memory_total) * 100) : 0}%
             </div>
             <Progress 
-              value={(metrics.memory.used / metrics.memory.total) * 100} 
+              value={metrics ? (metrics.memory_used / metrics.memory_total) * 100 : 0} 
               className="mb-2"
             />
             <p className="text-xs text-gray-400">
-              {formatBytes(metrics.memory.used * 1024 * 1024)} / {formatBytes(metrics.memory.total * 1024 * 1024)}
+              {metrics ? `${formatBytes(metrics.memory_used * 1024 * 1024)} / ${formatBytes(metrics.memory_total * 1024 * 1024)}` : 'N/A'}
             </p>
           </CardContent>
         </Card>
@@ -162,14 +162,14 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white mb-2">
-              {Math.round((metrics.disk.used / metrics.disk.total) * 100)}%
+              {metrics ? Math.round((metrics.disk_used / metrics.disk_total) * 100) : 0}%
             </div>
             <Progress 
-              value={(metrics.disk.used / metrics.disk.total) * 100} 
+              value={metrics ? (metrics.disk_used / metrics.disk_total) * 100 : 0} 
               className="mb-2"
             />
             <p className="text-xs text-gray-400">
-              {metrics.disk.used}GB / {metrics.disk.total}GB
+              {metrics ? `${metrics.disk_used}GB / ${metrics.disk_total}GB` : 'N/A'}
             </p>
           </CardContent>
         </Card>
@@ -181,13 +181,13 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold text-white mb-2">
-              ↑ {metrics.network.uploadSpeed.toFixed(1)} KB/s
+              ↑ {metrics ? metrics.network_upload_speed.toFixed(1) : '0.0'} KB/s
             </div>
             <div className="text-lg font-bold text-white mb-2">
-              ↓ {metrics.network.downloadSpeed.toFixed(1)} KB/s
+              ↓ {metrics ? metrics.network_download_speed.toFixed(1) : '0.0'} KB/s
             </div>
             <p className="text-xs text-gray-400">
-              Отправлено: {metrics.network.totalSent}GB
+              Отправлено: {metrics ? metrics.network_total_sent : '0'}GB
             </p>
           </CardContent>
         </Card>
