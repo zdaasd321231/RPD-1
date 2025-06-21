@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { mockAuth } from '../utils/mockData';
+import { authAPI } from '../utils/api';
+import { toast } from 'sonner';
 
 const AuthContext = createContext();
 
@@ -19,33 +20,60 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Check if user is logged in on app start
     const token = localStorage.getItem('authToken');
-    const userData = localStorage.getItem('userData');
     
-    if (token && userData) {
-      setUser(JSON.parse(userData));
-      setIsAuthenticated(true);
+    if (token) {
+      // Verify token with backend
+      verifyToken();
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
+
+  const verifyToken = async () => {
+    try {
+      const userData = await authAPI.getCurrentUser();
+      setUser(userData);
+      setIsAuthenticated(true);
+    } catch (error) {
+      // Token is invalid
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      setIsAuthenticated(false);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (username, password, totpCode = null) => {
     try {
       setLoading(true);
       
-      // Mock authentication
-      const result = await mockAuth.login(username, password, totpCode);
+      const response = await authAPI.login(username, password, totpCode);
       
-      if (result.success) {
-        setUser(result.user);
-        setIsAuthenticated(true);
-        localStorage.setItem('authToken', result.token);
-        localStorage.setItem('userData', JSON.stringify(result.user));
-        return { success: true };
-      } else {
-        return { success: false, error: result.error, requiresTOTP: result.requiresTOTP };
-      }
+      setUser(response.user || { username });
+      setIsAuthenticated(true);
+      localStorage.setItem('authToken', response.access_token);
+      localStorage.setItem('userData', JSON.stringify(response.user || { username }));
+      
+      return { success: true };
+      
     } catch (error) {
-      return { success: false, error: 'Authentication failed' };
+      let errorMessage = 'Authentication failed';
+      let requiresTOTP = false;
+      
+      if (error.response?.status === 400 && error.response?.headers?.['x-require-totp']) {
+        requiresTOTP = true;
+        errorMessage = 'Please enter your 2FA code';
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
+      }
+      
+      return { 
+        success: false, 
+        error: errorMessage,
+        requiresTOTP 
+      };
     } finally {
       setLoading(false);
     }
@@ -56,6 +84,53 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
+    toast.success('Logged out successfully');
+  };
+
+  const updateUser = async () => {
+    try {
+      const userData = await authAPI.getCurrentUser();
+      setUser(userData);
+      localStorage.setItem('userData', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Error updating user data:', error);
+    }
+  };
+
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      await authAPI.changePassword(currentPassword, newPassword);
+      toast.success('Password changed successfully');
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error.response?.data?.detail || 'Failed to change password';
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  const setup2FA = async () => {
+    try {
+      const response = await authAPI.setup2FA();
+      return { success: true, data: response };
+    } catch (error) {
+      const errorMessage = error.response?.data?.detail || 'Failed to setup 2FA';
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  const enable2FA = async (totpCode) => {
+    try {
+      await authAPI.enable2FA(totpCode);
+      await updateUser(); // Refresh user data
+      toast.success('Two-factor authentication enabled');
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error.response?.data?.detail || 'Failed to enable 2FA';
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    }
   };
 
   const value = {
@@ -63,7 +138,11 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     login,
-    logout
+    logout,
+    updateUser,
+    changePassword,
+    setup2FA,
+    enable2FA
   };
 
   return (
