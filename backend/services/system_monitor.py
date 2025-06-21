@@ -1,7 +1,7 @@
 import psutil
 import asyncio
 import platform
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Any
 from models import SystemMetrics, LogEntry, LogLevel, LogSource
 from database import db
