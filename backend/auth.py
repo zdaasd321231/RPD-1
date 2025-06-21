@@ -336,7 +336,7 @@ async def create_default_admin():
     if not admin_user:
         await auth_service.create_user(
             username="admin",
-            email="admin@rdpstealth.local",
+            email="admin@example.com",
             password="admin123",
             role="admin"
         )
