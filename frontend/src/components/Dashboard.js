@@ -22,34 +22,58 @@ import { dashboardAPI } from '../utils/api';
 import { toast } from 'sonner';
 
 const Dashboard = () => {
-  const [metrics, setMetrics] = useState(mockSystemMetrics);
-  const [sessions, setSessions] = useState(mockActiveSessions);
+  const [stats, setStats] = useState(null);
+  const [metrics, setMetrics] = useState(null);
+  const [sessions, setSessions] = useState([]);
   const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [loading, setLoading] = useState(true);
 
-  // Simulate real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMetrics(prev => ({
-        ...prev,
-        cpu: {
-          ...prev.cpu,
-          usage: Math.max(20, Math.min(90, prev.cpu.usage + (Math.random() - 0.5) * 10))
-        },
-        memory: {
-          ...prev.memory,
-          used: Math.max(4096, Math.min(14336, prev.memory.used + (Math.random() - 0.5) * 512))
-        },
-        network: {
-          ...prev.network,
-          uploadSpeed: Math.max(0, prev.network.uploadSpeed + (Math.random() - 0.5) * 20),
-          downloadSpeed: Math.max(0, prev.network.downloadSpeed + (Math.random() - 0.5) * 15)
-        }
-      }));
+  // Load dashboard data
+  const loadDashboardData = async () => {
+    try {
+      const [statsData, metricsData, sessionsData] = await Promise.all([
+        dashboardAPI.getStats(),
+        dashboardAPI.getCurrentMetrics(),
+        dashboardAPI.getActiveSessions()
+      ]);
+
+      setStats(statsData);
+      setMetrics(metricsData);
+      setSessions(sessionsData.sessions || []);
       setLastUpdate(new Date());
-    }, 3000);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Real-time updates
+  useEffect(() => {
+    loadDashboardData();
+
+    const interval = setInterval(() => {
+      loadDashboardData();
+    }, 30000); // Update every 30 seconds
 
     return () => clearInterval(interval);
   }, []);
+
+  const refreshData = () => {
+    setLoading(true);
+    loadDashboardData();
+  };
+
+  if (loading && !stats) {
+    return (
+      <div className="p-6 space-y-6 min-h-screen">
+        <div className="flex items-center justify-center h-64">
+          <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
 
   const getStatusColor = (value, thresholds) => {
     if (value >= thresholds.danger) return 'text-red-400';
