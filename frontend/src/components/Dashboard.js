@@ -89,10 +89,6 @@ const Dashboard = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const refreshData = () => {
-    setLastUpdate(new Date());
-    // In real app, this would fetch fresh data from API
-  };
 
   return (
     <div className="p-6 space-y-6 min-h-screen">
