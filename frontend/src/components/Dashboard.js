@@ -212,20 +212,27 @@ const Dashboard = () => {
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                     <div>
-                      <p className="text-white font-medium">{session.type}</p>
-                      <p className="text-gray-400 text-sm">{session.ip} • {session.country}</p>
+                      <p className="text-white font-medium">{session.session_type}</p>
+                      <p className="text-gray-400 text-sm">{session.ip_address} • {session.country || 'Unknown'}</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-white text-sm">
-                      {Math.floor((Date.now() - new Date(session.startTime)) / 60000)}m
+                      {session.duration_seconds ? Math.floor(session.duration_seconds / 60) : 0}m
                     </p>
                     <p className="text-gray-400 text-xs">
-                      {session.bandwidth} MB/s
+                      {session.bandwidth_used || 0} MB/s
                     </p>
                   </div>
                 </div>
               ))}
+              
+              {sessions.length === 0 && (
+                <div className="text-center py-4">
+                  <Users className="w-12 h-12 text-gray-600 mx-auto mb-2" />
+                  <p className="text-gray-400">Нет активных сессий</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
