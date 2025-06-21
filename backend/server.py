@@ -7,6 +7,10 @@ from pathlib import Path
 import asyncio
 
 # Import database and services
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from database import connect_to_mongo, close_mongo_connection, db_manager
 from auth import create_default_admin
 from services.system_monitor import system_monitor
