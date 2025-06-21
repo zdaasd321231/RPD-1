@@ -76,7 +76,7 @@ class DatabaseManager:
         if not existing_settings:
             default_settings = AppSettings(
                 notifications=NotificationSettings(
-                    notification_email="admin@rdpstealth.local"
+                    notification_email="admin@example.com"
                 ),
                 updated_by="system"
             )
