@@ -18,7 +18,8 @@ import {
   Zap,
   RefreshCw
 } from 'lucide-react';
-import { mockSystemMetrics, mockActiveSessions } from '../utils/mockData';
+import { dashboardAPI } from '../utils/api';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const [metrics, setMetrics] = useState(mockSystemMetrics);
